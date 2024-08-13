@@ -5,13 +5,13 @@ struct ScreenMirrorApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .preferredColorScheme(.dark) // Use dark mode
         }
     }
 }
 
 struct ContentView: View {
     @State private var selectedTab: AppTab = .home
+    @State private var isDarkMode: Bool = true // Track the current mode
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -19,14 +19,18 @@ struct ContentView: View {
                 DogGridView()
                     .navigationBarTitle("Beautiful Dogs")
                     .navigationBarTitleDisplayMode(.inline)
-                    .background(Color.black) // Set background to black
+                    .navigationBarItems(trailing: Button(action: {
+                        isDarkMode.toggle()
+                    }) {
+                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                    })
+                    .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme
             }
             .tabItem {
                 Image(systemName: "pawprint.fill")
                 Text("Home")
             }
             .tag(AppTab.home)
-            .background(Color.black) // Set background to black
             
             SearchView()
                 .tabItem {
@@ -34,7 +38,6 @@ struct ContentView: View {
                     Text("Search")
                 }
                 .tag(AppTab.search)
-                .background(Color.black) // Set background to black
             
             OrdersView()
                 .tabItem {
@@ -42,7 +45,6 @@ struct ContentView: View {
                     Text("Orders")
                 }
                 .tag(AppTab.orders)
-                .background(Color.black) // Set background to black
             
             AccountView()
                 .tabItem {
@@ -50,9 +52,9 @@ struct ContentView: View {
                     Text("Account")
                 }
                 .tag(AppTab.account)
-                .background(Color.black) // Set background to black
         }
-        .accentColor(.white) // Set tab bar icons to white
+        .accentColor(isDarkMode ? .white : .black) // Adjust the accent color based on theme
+        .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme globally
     }
 }
 
@@ -116,9 +118,7 @@ struct DogGridView: View {
                 }
             }
             .padding()
-            .background(Color.black) // Set background to black
         }
-        .background(Color.black) // Set background to black
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
@@ -174,7 +174,6 @@ struct DogDetailView: View {
                 }
             }
         }
-        .background(Color.black) // Set background to black
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
@@ -193,39 +192,34 @@ struct VideoPlayerView: View {
             if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Dogs") {
                 VideoPlayer(player: AVPlayer(url: url))
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    .background(Color.black)
             } else {
                 Text("Video not found")
                     .foregroundColor(.red)
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    .background(Color.black) // Set background to black
+                    .background(Color.gray.opacity(0.3))
             }
         }
-        .background(Color.black) // Set background to black
     }
 }
 
 struct SearchView: View {
     var body: some View {
         Text("Search Screen")
-            .foregroundColor(.white) // Set text to white
-            .background(Color.black) // Set background to black
+            .foregroundColor(.primary) // Adapt to the current theme
     }
 }
 
 struct OrdersView: View {
     var body: some View {
         Text("Orders Screen")
-            .foregroundColor(.white) // Set text to white
-            .background(Color.black) // Set background to black
+            .foregroundColor(.primary) // Adapt to the current theme
     }
 }
 
 struct AccountView: View {
     var body: some View {
         Text("Account Screen")
-            .foregroundColor(.white) // Set text to white
-            .background(Color.black) // Set background to black
+            .foregroundColor(.primary) // Adapt to the current theme
     }
 }
 
