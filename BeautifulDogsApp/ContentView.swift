@@ -242,16 +242,18 @@ struct DogDetailView: View {
 
     var body: some View {
         VStack {
+            let title = (item as NSString).deletingPathExtension // Strip the extension for the title
+            
             if item.hasSuffix(".mp4") || item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
                 VideoPlayerView(videoName: item)
-                    .navigationTitle(item)
+                    .navigationTitle(title)  // Use the title without extension
                     .navigationBarTitleDisplayMode(.inline)
             } else {
                 if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .navigationTitle(item)
+                        .navigationTitle(title)  // Use the title without extension
                         .navigationBarTitleDisplayMode(.inline)
                         .overlay(
                             VStack {
@@ -295,6 +297,7 @@ struct DogDetailView: View {
         return nil
     }
 }
+
 
 struct VideoPlayerView: View {
     let videoName: String
