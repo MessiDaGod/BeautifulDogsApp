@@ -23,16 +23,17 @@ struct ScreenMirrorApp: App {
     }
 }
 
-
 struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var isDarkMode: Bool = true // Track the current mode
+    @StateObject var cart = Cart() // Create a Cart object to track items
 
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationView {
                 CustomNavigationBar(title: "Beautiful Dogs", isDarkMode: $isDarkMode) {
                     DogGridView()
+                        .environmentObject(cart)
                 }
                 .environment(\.colorScheme, isDarkMode ? .dark : .light)
             }
@@ -42,26 +43,26 @@ struct ContentView: View {
             }
             .tag(AppTab.home)
             
-//            NavigationView {
-//                CustomNavigationBar(title: "Search", isDarkMode: $isDarkMode) {
-//                    SearchView()
-//                }
-//                .environment(\.colorScheme, isDarkMode ? .dark : .light)
-//            }
-//            .tabItem {
-//                Image(systemName: "magnifyingglass")
-//                Text("Search")
-//            }
-//            .tag(AppTab.search)
-            
             NavigationView {
                 CustomNavigationBar(title: "Orders", isDarkMode: $isDarkMode) {
                     OrdersView()
+                        .environmentObject(cart)
                 }
                 .environment(\.colorScheme, isDarkMode ? .dark : .light)
             }
             .tabItem {
-                Image(systemName: "cart.fill")
+                ZStack {
+                    Image(systemName: "cart.fill")
+                    if cart.items.count > 0 {
+                        Text("\(cart.items.count)")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                            .frame(width: 18, height: 18)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .offset(x: 10, y: -10) // Adjust position to be top right of the cart icon
+                    }
+                }
                 Text("Orders")
             }
             .tag(AppTab.orders)
@@ -80,6 +81,7 @@ struct ContentView: View {
         }
         .accentColor(isDarkMode ? .white : .black) // Adjust the accent color based on theme
         .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme globally
+        .environmentObject(cart) // Provide the Cart object to the entire ContentView hierarchy
     }
 }
 
@@ -216,43 +218,40 @@ struct VideoPlayerPreview: View {
 struct DogDetailView: View {
     let item: String
     @Binding var orderCounts: [String: Int]
+    @EnvironmentObject var cart: Cart
+    @State private var isAddedToCart = false // Track whether the item is added to the cart
 
     var body: some View {
         VStack {
             if item.contains("Video") {
                 VideoPlayerView(videoName: item)
-                    .navigationTitle(item) // Set the title to the name of the video
+                    .navigationTitle(item)
                     .navigationBarTitleDisplayMode(.inline)
             } else {
                 if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .navigationTitle(item) // Set the title to the name of the image
+                        .navigationTitle(item)
                         .navigationBarTitleDisplayMode(.inline)
                         .overlay(
                             VStack {
                                 Button(action: {
                                     orderCounts[item, default: 0] += 1
+                                    cart.addItem(item)
+                                    isAddedToCart = true // Disable the button after adding to the cart
                                 }) {
                                     Image(systemName: "plus.circle.fill")
                                         .foregroundColor(.green)
                                         .background(Color.white)
                                         .clipShape(Circle())
                                 }
+                                .disabled(isAddedToCart) // Disable the button once item is added
+                                .opacity(isAddedToCart ? 0.5 : 1.0) // Reduce opacity if disabled
                                 .padding([.top, .trailing], 8)
-
-                                if let count = orderCounts[item], count > 0 {
-                                    Text("\(count)")
-                                        .font(.caption)
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                }
                             }
-                            .padding()
-                            , alignment: .topTrailing
+                            .padding(),
+                            alignment: .topTrailing
                         )
                 } else {
                     Text("Image not found")
