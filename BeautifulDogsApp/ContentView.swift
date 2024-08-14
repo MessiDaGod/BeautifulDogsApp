@@ -54,13 +54,16 @@ struct ContentView: View {
                 ZStack {
                     Image(systemName: "cart.fill")
                     if cart.items.count > 0 {
-                        Text("\(cart.items.count)")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .frame(width: 18, height: 18)
-                            .background(Color.red)
-                            .clipShape(Circle())
-                            .offset(x: 10, y: -10) // Adjust position to be top right of the cart icon
+                        // This ZStack is used to ensure the badge appears correctly on top of the cart icon
+                        ZStack {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 18, height: 18) // Ensures the badge is a red circle
+                            Text("\(cart.items.count)")
+                                .font(.caption2)
+                                .foregroundColor(.white)
+                        }
+                        .offset(x: 10, y: -10) // Position the badge in the top right corner
                     }
                 }
                 Text("Orders")
@@ -84,6 +87,7 @@ struct ContentView: View {
         .environmentObject(cart) // Provide the Cart object to the entire ContentView hierarchy
     }
 }
+
 
 struct CustomNavigationBar<Content: View>: View {
     let title: String
@@ -137,11 +141,18 @@ struct DogGridView: View {
         
         do {
             let files = try fileManager.contentsOfDirectory(atPath: directoryPath)
-            let filteredFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".mp4") }
-            return filteredFiles.map { $0.replacingOccurrences(of: ".png", with: "")
-                                    .replacingOccurrences(of: ".jpg", with: "")
-                                    .replacingOccurrences(of: ".jpeg", with: "")
-                                    .replacingOccurrences(of: ".mp4", with: "") }
+            
+            // Separate images from videos
+            let imageFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") || $0.hasSuffix(".jpeg") }
+            let videoFiles = files.filter { $0.hasSuffix(".mp4") || $0.hasSuffix(".MOV") || $0.hasSuffix(".mov") }
+            
+            // Strip extensions for image files only
+            let strippedImages = imageFiles.map { $0.replacingOccurrences(of: ".png", with: "")
+                                                .replacingOccurrences(of: ".jpg", with: "")
+                                                .replacingOccurrences(of: ".jpeg", with: "") }
+            
+            // Return a combined list of image and video files
+            return strippedImages + videoFiles
         } catch {
             return []
         }
@@ -159,7 +170,7 @@ struct DogGridView: View {
                     ZStack(alignment: .topTrailing) {
                         NavigationLink(destination: DogDetailView(item: item, orderCounts: $orderCounts)) {
                             VStack {
-                                if item.contains("Video") {
+                                if item.hasSuffix(".mp4") || item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
                                     VideoPlayerPreview(videoName: item)
                                         .frame(width: 100, height: 100)
                                         .cornerRadius(8)
@@ -189,10 +200,19 @@ struct DogGridView: View {
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
-        guard let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) else {
-            return nil
+        // Check for PNG first
+        if let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
         }
-        return UIImage(contentsOfFile: path)
+        // Check for JPEG
+        if let path = Bundle.main.path(forResource: named, ofType: "jpeg", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
+        }
+        // Check for JPG
+        if let path = Bundle.main.path(forResource: named, ofType: "jpg", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
+        }
+        return nil
     }
 }
 
@@ -200,7 +220,8 @@ struct VideoPlayerPreview: View {
     let videoName: String
 
     var body: some View {
-        if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Dogs") {
+        // Check for both .mp4 and .mov extensions
+        if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
             VideoPlayer(player: AVPlayer(url: url))
                 .onAppear {
                     AVPlayer(url: url).play() // Automatically play the video preview
@@ -219,11 +240,10 @@ struct DogDetailView: View {
     let item: String
     @Binding var orderCounts: [String: Int]
     @EnvironmentObject var cart: Cart
-    @State private var isAddedToCart = false // Track whether the item is added to the cart
 
     var body: some View {
         VStack {
-            if item.contains("Video") {
+            if item.hasSuffix(".mp4") || item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
                 VideoPlayerView(videoName: item)
                     .navigationTitle(item)
                     .navigationBarTitleDisplayMode(.inline)
@@ -239,15 +259,12 @@ struct DogDetailView: View {
                                 Button(action: {
                                     orderCounts[item, default: 0] += 1
                                     cart.addItem(item)
-                                    isAddedToCart = true // Disable the button after adding to the cart
                                 }) {
                                     Image(systemName: "plus.circle.fill")
                                         .foregroundColor(.green)
                                         .background(Color.white)
                                         .clipShape(Circle())
                                 }
-                                .disabled(isAddedToCart) // Disable the button once item is added
-                                .opacity(isAddedToCart ? 0.5 : 1.0) // Reduce opacity if disabled
                                 .padding([.top, .trailing], 8)
                             }
                             .padding(),
@@ -264,20 +281,28 @@ struct DogDetailView: View {
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
-        guard let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) else {
-            return nil
+        // Check for PNG first
+        if let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
         }
-        return UIImage(contentsOfFile: path)
+        // Check for JPEG
+        if let path = Bundle.main.path(forResource: named, ofType: "jpeg", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
+        }
+        // Check for JPG
+        if let path = Bundle.main.path(forResource: named, ofType: "jpg", inDirectory: subdirectory) {
+            return UIImage(contentsOfFile: path)
+        }
+        return nil
     }
 }
-
 
 struct VideoPlayerView: View {
     let videoName: String
 
     var body: some View {
         GeometryReader { geometry in
-            if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Dogs") {
+            if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
                 VideoPlayer(player: AVPlayer(url: url))
                     .frame(width: geometry.size.width, height: geometry.size.height)
             } else {
@@ -289,6 +314,7 @@ struct VideoPlayerView: View {
         }
     }
 }
+
 
 struct SearchView: View {
     var body: some View {
