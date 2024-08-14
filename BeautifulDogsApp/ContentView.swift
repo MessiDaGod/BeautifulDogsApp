@@ -220,12 +220,10 @@ struct VideoPlayerPreview: View {
     let videoName: String
 
     var body: some View {
-        // Check for both .mp4 and .mov extensions
         if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
             VideoPlayer(player: AVPlayer(url: url))
-                .onAppear {
-                    AVPlayer(url: url).play() // Automatically play the video preview
-                }
+                .frame(width: 100, height: 100)
+                .cornerRadius(8)
         } else {
             Text("Video not found")
                 .foregroundColor(.red)
@@ -235,6 +233,7 @@ struct VideoPlayerPreview: View {
         }
     }
 }
+
 
 struct DogDetailView: View {
     let item: String
@@ -299,12 +298,20 @@ struct DogDetailView: View {
 
 struct VideoPlayerView: View {
     let videoName: String
+    @State private var player: AVPlayer?
 
     var body: some View {
         GeometryReader { geometry in
             if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
-                VideoPlayer(player: AVPlayer(url: url))
+                VideoPlayer(player: player ?? AVPlayer(url: url))
                     .frame(width: geometry.size.width, height: geometry.size.height)
+                    .onAppear {
+                        player = AVPlayer(url: url)
+                    }
+                    .onDisappear {
+                        player?.pause()  // Pause the video when the view disappears
+                        player?.replaceCurrentItem(with: nil)  // Optionally, release the player
+                    }
             } else {
                 Text("Video not found")
                     .foregroundColor(.red)
