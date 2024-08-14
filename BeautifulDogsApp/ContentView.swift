@@ -1,6 +1,20 @@
 import SwiftUI
 import AVKit
 
+class Cart: ObservableObject {
+    @Published var items: [String] = []
+    
+    func addItem(_ item: String) {
+        if !items.contains(item) {
+            items.append(item)
+        }
+    }
+    
+    func removeItem(_ item: String) {
+        items.removeAll { $0 == item }
+    }
+}
+
 struct ScreenMirrorApp: App {
     var body: some Scene {
         WindowGroup {
@@ -9,6 +23,7 @@ struct ScreenMirrorApp: App {
     }
 }
 
+
 struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var isDarkMode: Bool = true // Track the current mode
@@ -16,15 +31,10 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationView {
-                DogGridView()
-                    .navigationBarTitle("Beautiful Dogs")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .navigationBarItems(trailing: Button(action: {
-                        isDarkMode.toggle()
-                    }) {
-                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                    })
-                    .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme
+                CustomNavigationBar(title: "Beautiful Dogs", isDarkMode: $isDarkMode) {
+                    DogGridView()
+                }
+                .environment(\.colorScheme, isDarkMode ? .dark : .light)
             }
             .tabItem {
                 Image(systemName: "pawprint.fill")
@@ -32,37 +42,92 @@ struct ContentView: View {
             }
             .tag(AppTab.home)
             
-            SearchView()
-                .tabItem {
-                    Image(systemName: "magnifyingglass")
-                    Text("Search")
-                }
-                .tag(AppTab.search)
+//            NavigationView {
+//                CustomNavigationBar(title: "Search", isDarkMode: $isDarkMode) {
+//                    SearchView()
+//                }
+//                .environment(\.colorScheme, isDarkMode ? .dark : .light)
+//            }
+//            .tabItem {
+//                Image(systemName: "magnifyingglass")
+//                Text("Search")
+//            }
+//            .tag(AppTab.search)
             
-            OrdersView()
-                .tabItem {
-                    Image(systemName: "cart.fill")
-                    Text("Orders")
+            NavigationView {
+                CustomNavigationBar(title: "Orders", isDarkMode: $isDarkMode) {
+                    OrdersView()
                 }
-                .tag(AppTab.orders)
+                .environment(\.colorScheme, isDarkMode ? .dark : .light)
+            }
+            .tabItem {
+                Image(systemName: "cart.fill")
+                Text("Orders")
+            }
+            .tag(AppTab.orders)
             
-            AccountView()
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    Text("Account")
+            NavigationView {
+                CustomNavigationBar(title: "Account", isDarkMode: $isDarkMode) {
+                    AccountView()
                 }
-                .tag(AppTab.account)
+                .environment(\.colorScheme, isDarkMode ? .dark : .light)
+            }
+            .tabItem {
+                Image(systemName: "person.fill")
+                Text("Account")
+            }
+            .tag(AppTab.account)
         }
         .accentColor(isDarkMode ? .white : .black) // Adjust the accent color based on theme
         .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme globally
     }
 }
 
+struct CustomNavigationBar<Content: View>: View {
+    let title: String
+    @Binding var isDarkMode: Bool
+    let content: Content
+    
+    init(title: String, isDarkMode: Binding<Bool>, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self._isDarkMode = isDarkMode
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Spacer()
+                Button(action: {
+                    isDarkMode.toggle()
+                }) {
+                    Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            
+            Divider()
+            
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure content takes up remaining space
+                .background(Color(.systemBackground))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure the entire view fills the screen
+    }
+}
+
 enum AppTab: CaseIterable {
-    case home, search, orders, account
+    case home,/* search, */orders, account
 }
 
 struct DogGridView: View {
+    @State private var orderCounts: [String: Int] = [:] // Track the number of orders for each item
+
     let dogItems: [String] = {
         let fileManager = FileManager.default
         let resourcePath = Bundle.main.resourcePath!
@@ -71,13 +136,11 @@ struct DogGridView: View {
         do {
             let files = try fileManager.contentsOfDirectory(atPath: directoryPath)
             let filteredFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".mp4") }
-            print("Files found: \(filteredFiles)") // Debugging line to see the files found
             return filteredFiles.map { $0.replacingOccurrences(of: ".png", with: "")
                                     .replacingOccurrences(of: ".jpg", with: "")
                                     .replacingOccurrences(of: ".jpeg", with: "")
                                     .replacingOccurrences(of: ".mp4", with: "") }
         } catch {
-            print("Error loading contents of directory: \(error)")
             return []
         }
     }()
@@ -91,26 +154,28 @@ struct DogGridView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
                 ForEach(dogItems, id: \.self) { item in
-                    NavigationLink(destination: DogDetailView(item: item)) {
-                        VStack {
-                            if item.contains("Video") {
-                                VideoPlayerPreview(videoName: item)
-                                    .frame(width: 100, height: 100)
-                                    .cornerRadius(8)
-                            } else {
-                                if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
+                    ZStack(alignment: .topTrailing) {
+                        NavigationLink(destination: DogDetailView(item: item, orderCounts: $orderCounts)) {
+                            VStack {
+                                if item.contains("Video") {
+                                    VideoPlayerPreview(videoName: item)
                                         .frame(width: 100, height: 100)
                                         .cornerRadius(8)
-                                        .clipped()
                                 } else {
-                                    Text("Image not found")
-                                        .foregroundColor(.red)
-                                        .frame(width: 100, height: 100)
-                                        .background(Color.gray.opacity(0.3))
-                                        .cornerRadius(8)
+                                    if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .cornerRadius(8)
+                                            .clipped()
+                                    } else {
+                                        Text("Image not found")
+                                            .foregroundColor(.red)
+                                            .frame(width: 100, height: 100)
+                                            .background(Color.gray.opacity(0.3))
+                                            .cornerRadius(8)
+                                    }
                                 }
                             }
                         }
@@ -123,10 +188,8 @@ struct DogGridView: View {
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
         guard let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) else {
-            print("Image \(named).png not found in \(subdirectory)") // Debugging line
             return nil
         }
-        print("Loaded image from path: \(path)") // Debugging line
         return UIImage(contentsOfFile: path)
     }
 }
@@ -152,6 +215,7 @@ struct VideoPlayerPreview: View {
 
 struct DogDetailView: View {
     let item: String
+    @Binding var orderCounts: [String: Int]
 
     var body: some View {
         VStack {
@@ -166,6 +230,30 @@ struct DogDetailView: View {
                         .scaledToFit()
                         .navigationTitle(item) // Set the title to the name of the image
                         .navigationBarTitleDisplayMode(.inline)
+                        .overlay(
+                            VStack {
+                                Button(action: {
+                                    orderCounts[item, default: 0] += 1
+                                }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(.green)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                }
+                                .padding([.top, .trailing], 8)
+
+                                if let count = orderCounts[item], count > 0 {
+                                    Text("\(count)")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(6)
+                                        .background(Color.red)
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .padding()
+                            , alignment: .topTrailing
+                        )
                 } else {
                     Text("Image not found")
                         .foregroundColor(.red)
@@ -183,6 +271,7 @@ struct DogDetailView: View {
         return UIImage(contentsOfFile: path)
     }
 }
+
 
 struct VideoPlayerView: View {
     let videoName: String
