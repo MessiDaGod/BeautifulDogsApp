@@ -141,7 +141,6 @@ enum AppTab: CaseIterable {
     case home, orders, account
 }
 
-
 struct DogGridView: View {
     @EnvironmentObject var cart: Cart
     @State private var isAdded: [String: Bool] = [:] // Track if an item has been added
@@ -178,8 +177,15 @@ struct DogGridView: View {
                 ForEach(dogItems, id: \.self) { item in
                     ZStack(alignment: .topTrailing) {
                         NavigationLink(destination: DogDetailView(item: item, isAdded: Binding(
-                            get: { isAdded[item] ?? false },
-                            set: { newValue in isAdded[item] = newValue }
+                            get: { cart.items.contains(where: { $0.name == item }) },
+                            set: { newValue in
+                                if newValue {
+                                    cart.addItem(name: item, price: 5000.0) // Assuming a price here
+                                } else if let cartItem = cart.items.first(where: { $0.name == item }) {
+                                    cart.removeItem(cartItem)
+                                }
+                                isAdded[item] = newValue
+                            }
                         ))) {
                             VStack {
                                 if item.hasSuffix(".mp4") ||
@@ -206,11 +212,12 @@ struct DogGridView: View {
                             }
                         }
                         
-                        if isAdded[item] ?? false {
+                        if cart.items.contains(where: { $0.name == item }) {
                             Button(action: {
-                                let cartItem = Cart.CartItem(name: item, price: 5000.0) // Assuming a price here
-                                cart.removeItem(cartItem)
-                                isAdded[item] = false
+                                if let cartItem = cart.items.first(where: { $0.name == item }) {
+                                    cart.removeItem(cartItem)
+                                    isAdded[item] = false
+                                }
                             }) {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundColor(.red)
@@ -220,8 +227,7 @@ struct DogGridView: View {
                             .padding([.top, .trailing], 8)
                         } else {
                             Button(action: {
-                                let cartItem = Cart.CartItem(name: item, price: 5000.0) // Assuming a price here
-                                cart.addItem(name: cartItem.name, price: cartItem.price)
+                                cart.addItem(name: item, price: 5000.0) // Assuming a price here
                                 isAdded[item] = true
                             }) {
                                 Image(systemName: "plus.circle.fill")
@@ -235,6 +241,12 @@ struct DogGridView: View {
                 }
             }
             .padding()
+        }
+        .onAppear {
+            // Synchronize the isAdded state with the cart
+            for item in dogItems {
+                isAdded[item] = cart.items.contains(where: { $0.name == item })
+            }
         }
     }
 
@@ -251,7 +263,6 @@ struct DogGridView: View {
         return nil
     }
 }
-
 
 struct DogDetailView: View {
     let item: String
@@ -400,8 +411,14 @@ struct OrdersView: View {
                     Spacer()
                 }
             }
+            .onDelete { indexSet in
+                indexSet.forEach { index in
+                    let item = cart.items[index]
+                    cart.removeItem(item)
+                }
+            }
         }
-        .navigationTitle("Orders")
+       // .navigationTitle("Orders")
     }
 }
 

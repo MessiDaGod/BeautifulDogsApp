@@ -13,9 +13,7 @@
 		0B3958952C6BE62C00455E05 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958942C6BE62C00455E05 /* Preview Assets.xcassets */; };
 		0B3958972C6BE62C00455E05 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958962C6BE62C00455E05 /* Persistence.swift */; };
 		0B39589A2C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958982C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld */; };
-		0B3958A22C6BE6EE00455E05 /* dogVideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958A12C6BE6EE00455E05 /* dogVideo.mp4 */; };
 		0B3958A62C6BEA8C00455E05 /* Media in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958A52C6BEA8C00455E05 /* Media */; };
-		0B3958AA2C6BFBC400455E05 /* Deebo.png in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958A92C6BFBC400455E05 /* Deebo.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,9 +24,7 @@
 		0B3958942C6BE62C00455E05 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		0B3958962C6BE62C00455E05 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		0B3958992C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BeautifulDogsApp.xcdatamodel; sourceTree = "<group>"; };
-		0B3958A12C6BE6EE00455E05 /* dogVideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = dogVideo.mp4; sourceTree = "<group>"; };
 		0B3958A52C6BEA8C00455E05 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Media; sourceTree = "<group>"; };
-		0B3958A92C6BFBC400455E05 /* Deebo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Deebo.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +57,6 @@
 		0B39588C2C6BE62B00455E05 /* BeautifulDogsApp */ = {
 			isa = PBXGroup;
 			children = (
-				0B3958A02C6BE6D900455E05 /* Media */,
 				0B39588D2C6BE62B00455E05 /* BeautifulDogsAppApp.swift */,
 				0B39588F2C6BE62B00455E05 /* ContentView.swift */,
 				0B3958912C6BE62C00455E05 /* Assets.xcassets */,
@@ -79,23 +74,6 @@
 				0B3958942C6BE62C00455E05 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		0B3958A02C6BE6D900455E05 /* Media */ = {
-			isa = PBXGroup;
-			children = (
-				0B3958A82C6BFB6300455E05 /* Dogs */,
-			);
-			path = Media;
-			sourceTree = "<group>";
-		};
-		0B3958A82C6BFB6300455E05 /* Dogs */ = {
-			isa = PBXGroup;
-			children = (
-				0B3958A92C6BFBC400455E05 /* Deebo.png */,
-				0B3958A12C6BE6EE00455E05 /* dogVideo.mp4 */,
-			);
-			path = Dogs;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -158,9 +136,7 @@
 			files = (
 				0B3958952C6BE62C00455E05 /* Preview Assets.xcassets in Resources */,
 				0B3958A62C6BEA8C00455E05 /* Media in Resources */,
-				0B3958AA2C6BFBC400455E05 /* Deebo.png in Resources */,
 				0B3958922C6BE62C00455E05 /* Assets.xcassets in Resources */,
-				0B3958A22C6BE6EE00455E05 /* dogVideo.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -315,6 +291,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -345,6 +322,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
