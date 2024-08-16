@@ -270,6 +270,10 @@ struct DogDetailView: View {
     @EnvironmentObject var cart: Cart
     @State private var price: Double = 5000.0 // Default price, change as needed
     @State private var isAdmin: Bool = false // For demonstration purposes, set to true if admin
+    
+    private var title: String {
+        return (item as NSString).deletingPathExtension
+    }
 
     var body: some View {
         VStack {
@@ -298,13 +302,11 @@ struct DogDetailView: View {
                                 }
 
                                 Button(action: {
-                                    let cartItem = Cart.CartItem(name: title, price: price)
                                     if isAdded {
-                                        cart.removeItem(cartItem)
+                                        removeFromCart(title: title)
                                     } else {
-                                        cart.addItem(name: cartItem.name, price: cartItem.price)
+                                        addToCart(title: title, price: price)
                                     }
-                                    isAdded.toggle()
                                 }) {
                                     Image(systemName: isAdded ? "minus.circle.fill" : "plus.circle.fill")
                                         .foregroundColor(isAdded ? .red : .green)
@@ -323,6 +325,21 @@ struct DogDetailView: View {
                         .navigationBarTitleDisplayMode(.inline)
                 }
             }
+        }
+        .onAppear {
+            isAdded = cart.items.contains(where: { $0.name == title })
+        }
+    }
+
+    func addToCart(title: String, price: Double) {
+        cart.addItem(name: title, price: price)
+        isAdded = true
+    }
+
+    func removeFromCart(title: String) {
+        if let cartItem = cart.items.first(where: { $0.name == title }) {
+            cart.removeItem(cartItem)
+            isAdded = false
         }
     }
 
