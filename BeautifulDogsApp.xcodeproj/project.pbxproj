@@ -15,6 +15,12 @@
 		0B39589A2C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958982C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld */; };
 		0B3958A62C6BEA8C00455E05 /* Media in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958A52C6BEA8C00455E05 /* Media */; };
 		0B3958BC2C70109D00455E05 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958BB2C70109D00455E05 /* SupabaseManager.swift */; };
+		0B3958BF2C70118600455E05 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958BE2C70118600455E05 /* Auth */; };
+		0B3958C12C70118600455E05 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958C02C70118600455E05 /* Functions */; };
+		0B3958C32C70118600455E05 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958C22C70118600455E05 /* PostgREST */; };
+		0B3958C52C70118600455E05 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958C42C70118600455E05 /* Realtime */; };
+		0B3958C72C70118600455E05 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958C62C70118600455E05 /* Storage */; };
+		0B3958C92C70118600455E05 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0B3958C82C70118600455E05 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +40,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B3958C32C70118600455E05 /* PostgREST in Frameworks */,
+				0B3958C12C70118600455E05 /* Functions in Frameworks */,
+				0B3958C92C70118600455E05 /* Supabase in Frameworks */,
+				0B3958BF2C70118600455E05 /* Auth in Frameworks */,
+				0B3958C72C70118600455E05 /* Storage in Frameworks */,
+				0B3958C52C70118600455E05 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,6 +107,14 @@
 			dependencies = (
 			);
 			name = BeautifulDogsApp;
+			packageProductDependencies = (
+				0B3958BE2C70118600455E05 /* Auth */,
+				0B3958C02C70118600455E05 /* Functions */,
+				0B3958C22C70118600455E05 /* PostgREST */,
+				0B3958C42C70118600455E05 /* Realtime */,
+				0B3958C62C70118600455E05 /* Storage */,
+				0B3958C82C70118600455E05 /* Supabase */,
+			);
 			productName = BeautifulDogsApp;
 			productReference = 0B39588A2C6BE62B00455E05 /* BeautifulDogsApp.app */;
 			productType = "com.apple.product-type.application";
@@ -123,6 +143,9 @@
 				Base,
 			);
 			mainGroup = 0B3958812C6BE62B00455E05;
+			packageReferences = (
+				0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = 0B39588B2C6BE62B00455E05 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -364,6 +387,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0B3958BE2C70118600455E05 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		0B3958C02C70118600455E05 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		0B3958C22C70118600455E05 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		0B3958C42C70118600455E05 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		0B3958C62C70118600455E05 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		0B3958C82C70118600455E05 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B3958BD2C70118600455E05 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		0B3958982C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld */ = {
