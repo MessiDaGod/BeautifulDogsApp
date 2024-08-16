@@ -2,16 +2,28 @@ import SwiftUI
 import AVKit
 
 class Cart: ObservableObject {
-    @Published var items: [String] = []
+    struct CartItem: Identifiable {
+        let id = UUID()
+        var name: String
+        var price: Double
+    }
     
-    func addItem(_ item: String) {
-        if !items.contains(item) {
-            items.append(item)
+    @Published var items: [CartItem] = []
+    
+    func addItem(name: String, price: Double) {
+        if !items.contains(where: { $0.name == name }) {
+            items.append(CartItem(name: name, price: price))
         }
     }
     
-    func removeItem(_ item: String) {
-        items.removeAll { $0 == item }
+    func removeItem(_ item: CartItem) {
+        items.removeAll { $0.id == item.id }
+    }
+    
+    func updatePrice(for item: CartItem, newPrice: Double) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index].price = newPrice
+        }
     }
 }
 
@@ -54,16 +66,15 @@ struct ContentView: View {
                 ZStack {
                     Image(systemName: "cart.fill")
                     if cart.items.count > 0 {
-                        // This ZStack is used to ensure the badge appears correctly on top of the cart icon
                         ZStack {
                             Circle()
                                 .fill(Color.red)
-                                .frame(width: 18, height: 18) // Ensures the badge is a red circle
+                                .frame(width: 18, height: 18)
                             Text("\(cart.items.count)")
                                 .font(.caption2)
                                 .foregroundColor(.white)
                         }
-                        .offset(x: 10, y: -10) // Position the badge in the top right corner
+                        .offset(x: 10, y: -10)
                     }
                 }
                 Text("Orders")
@@ -82,12 +93,11 @@ struct ContentView: View {
             }
             .tag(AppTab.account)
         }
-        .accentColor(isDarkMode ? .white : .black) // Adjust the accent color based on theme
-        .environment(\.colorScheme, isDarkMode ? .dark : .light) // Apply the current theme globally
-        .environmentObject(cart) // Provide the Cart object to the entire ContentView hierarchy
+        .accentColor(isDarkMode ? .white : .black)
+        .environment(\.colorScheme, isDarkMode ? .dark : .light)
+        .environmentObject(cart)
     }
 }
-
 
 struct CustomNavigationBar<Content: View>: View {
     let title: String
@@ -120,19 +130,21 @@ struct CustomNavigationBar<Content: View>: View {
             Divider()
             
             content
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure content takes up remaining space
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(.systemBackground))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure the entire view fills the screen
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 enum AppTab: CaseIterable {
-    case home,/* search, */orders, account
+    case home, orders, account
 }
 
+
 struct DogGridView: View {
-    @State private var orderCounts: [String: Int] = [:] // Track the number of orders for each item
+    @EnvironmentObject var cart: Cart
+    @State private var isAdded: [String: Bool] = [:] // Track if an item has been added
 
     let dogItems: [String] = {
         let fileManager = FileManager.default
@@ -142,16 +154,13 @@ struct DogGridView: View {
         do {
             let files = try fileManager.contentsOfDirectory(atPath: directoryPath)
             
-            // Separate images from videos
             let imageFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") || $0.hasSuffix(".jpeg") }
             let videoFiles = files.filter { $0.hasSuffix(".mp4") || $0.hasSuffix(".MOV") || $0.hasSuffix(".mov") }
             
-            // Strip extensions for image files only
             let strippedImages = imageFiles.map { $0.replacingOccurrences(of: ".png", with: "")
                                                 .replacingOccurrences(of: ".jpg", with: "")
                                                 .replacingOccurrences(of: ".jpeg", with: "") }
             
-            // Return a combined list of image and video files
             return strippedImages + videoFiles
         } catch {
             return []
@@ -168,29 +177,59 @@ struct DogGridView: View {
             LazyVGrid(columns: columns, spacing: 20) {
                 ForEach(dogItems, id: \.self) { item in
                     ZStack(alignment: .topTrailing) {
-                        NavigationLink(destination: DogDetailView(item: item, orderCounts: $orderCounts)) {
+                        NavigationLink(destination: DogDetailView(item: item, isAdded: Binding(
+                            get: { isAdded[item] ?? false },
+                            set: { newValue in isAdded[item] = newValue }
+                        ))) {
                             VStack {
-                                if item.hasSuffix(".mp4") || item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
+                                if item.hasSuffix(".mp4") ||
+                                    item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
                                     VideoPlayerPreview(videoName: item)
-                                        .frame(width: 100, height: 100)
+                                        .frame(width: 150, height: 150)
                                         .cornerRadius(8)
                                 } else {
                                     if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
                                         Image(uiImage: image)
                                             .resizable()
                                             .scaledToFill()
-                                            .frame(width: 100, height: 100)
+                                            .frame(width: 150, height: 150)
                                             .cornerRadius(8)
                                             .clipped()
                                     } else {
                                         Text("Image not found")
                                             .foregroundColor(.red)
-                                            .frame(width: 100, height: 100)
+                                            .frame(width: 150, height: 150)
                                             .background(Color.gray.opacity(0.3))
                                             .cornerRadius(8)
                                     }
                                 }
                             }
+                        }
+                        
+                        if isAdded[item] ?? false {
+                            Button(action: {
+                                let cartItem = Cart.CartItem(name: item, price: 5000.0) // Assuming a price here
+                                cart.removeItem(cartItem)
+                                isAdded[item] = false
+                            }) {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundColor(.red)
+                                    .background(Color.white)
+                                    .clipShape(Circle())
+                            }
+                            .padding([.top, .trailing], 8)
+                        } else {
+                            Button(action: {
+                                let cartItem = Cart.CartItem(name: item, price: 5000.0) // Assuming a price here
+                                cart.addItem(name: cartItem.name, price: cartItem.price)
+                                isAdded[item] = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.green)
+                                    .background(Color.white)
+                                    .clipShape(Circle())
+                            }
+                            .padding([.top, .trailing], 8)
                         }
                     }
                 }
@@ -200,15 +239,12 @@ struct DogGridView: View {
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
-        // Check for PNG first
         if let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
-        // Check for JPEG
         if let path = Bundle.main.path(forResource: named, ofType: "jpeg", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
-        // Check for JPG
         if let path = Bundle.main.path(forResource: named, ofType: "jpg", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
@@ -216,53 +252,51 @@ struct DogGridView: View {
     }
 }
 
-struct VideoPlayerPreview: View {
-    let videoName: String
-
-    var body: some View {
-        if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
-            VideoPlayer(player: AVPlayer(url: url))
-                .frame(width: 100, height: 100)
-                .cornerRadius(8)
-        } else {
-            Text("Video not found")
-                .foregroundColor(.red)
-                .frame(width: 100, height: 100)
-                .background(Color.gray.opacity(0.3))
-                .cornerRadius(8)
-        }
-    }
-}
-
 
 struct DogDetailView: View {
     let item: String
-    @Binding var orderCounts: [String: Int]
+    @Binding var isAdded: Bool
     @EnvironmentObject var cart: Cart
+    @State private var price: Double = 5000.0 // Default price, change as needed
+    @State private var isAdmin: Bool = false // For demonstration purposes, set to true if admin
 
     var body: some View {
         VStack {
-            let title = (item as NSString).deletingPathExtension // Strip the extension for the title
+            let title = (item as NSString).deletingPathExtension
             
             if item.hasSuffix(".mp4") || item.hasSuffix(".MOV") || item.hasSuffix(".mov") {
                 VideoPlayerView(videoName: item)
-                    .navigationTitle(title)  // Use the title without extension
+                    .navigationTitle(title)
                     .navigationBarTitleDisplayMode(.inline)
             } else {
                 if let image = loadImage(named: item, subdirectory: "Media/Dogs") {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .navigationTitle(title)  // Use the title without extension
+                        .navigationTitle(title)
                         .navigationBarTitleDisplayMode(.inline)
                         .overlay(
                             VStack {
+                                if isAdmin {
+                                    TextField("Price", value: $price, format: .currency(code: "USD"))
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .padding()
+                                } else {
+                                    Text("\(price, format: .currency(code: "USD"))")
+                                        .padding()
+                                }
+
                                 Button(action: {
-                                    orderCounts[item, default: 0] += 1
-                                    cart.addItem(item)
+                                    let cartItem = Cart.CartItem(name: title, price: price)
+                                    if isAdded {
+                                        cart.removeItem(cartItem)
+                                    } else {
+                                        cart.addItem(name: cartItem.name, price: cartItem.price)
+                                    }
+                                    isAdded.toggle()
                                 }) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.green)
+                                    Image(systemName: isAdded ? "minus.circle.fill" : "plus.circle.fill")
+                                        .foregroundColor(isAdded ? .red : .green)
                                         .background(Color.white)
                                         .clipShape(Circle())
                                 }
@@ -282,15 +316,12 @@ struct DogDetailView: View {
     }
 
     func loadImage(named: String, subdirectory: String) -> UIImage? {
-        // Check for PNG first
         if let path = Bundle.main.path(forResource: named, ofType: "png", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
-        // Check for JPEG
         if let path = Bundle.main.path(forResource: named, ofType: "jpeg", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
-        // Check for JPG
         if let path = Bundle.main.path(forResource: named, ofType: "jpg", inDirectory: subdirectory) {
             return UIImage(contentsOfFile: path)
         }
@@ -298,6 +329,24 @@ struct DogDetailView: View {
     }
 }
 
+
+struct VideoPlayerPreview: View {
+    let videoName: String
+
+    var body: some View {
+        if let url = Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Dogs") {
+            VideoPlayer(player: AVPlayer(url: url))
+                .frame(width: 100, height: 100)
+                .cornerRadius(8)
+        } else {
+            Text("Video not found")
+                .foregroundColor(.red)
+                .frame(width: 100, height: 100)
+                .background(Color.gray.opacity(0.3))
+                .cornerRadius(8)
+        }
+    }
+}
 
 struct VideoPlayerView: View {
     let videoName: String
@@ -312,8 +361,8 @@ struct VideoPlayerView: View {
                         player = AVPlayer(url: url)
                     }
                     .onDisappear {
-                        player?.pause()  // Pause the video when the view disappears
-                        player?.replaceCurrentItem(with: nil)  // Optionally, release the player
+                        player?.pause()
+                        player?.replaceCurrentItem(with: nil)
                     }
             } else {
                 Text("Video not found")
@@ -325,25 +374,42 @@ struct VideoPlayerView: View {
     }
 }
 
-
-struct SearchView: View {
-    var body: some View {
-        Text("Search Screen")
-            .foregroundColor(.primary) // Adapt to the current theme
-    }
-}
-
 struct OrdersView: View {
+    @EnvironmentObject var cart: Cart
+    @State private var isAdmin: Bool = false // For demonstration purposes, set to true if admin
+
     var body: some View {
-        Text("Orders Screen")
-            .foregroundColor(.primary) // Adapt to the current theme
+        List {
+            ForEach(cart.items) { item in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(item.name)
+                            .font(.headline)
+                        if isAdmin {
+                            TextField("Price", value: Binding(
+                                get: { item.price },
+                                set: { newPrice in
+                                    cart.updatePrice(for: item, newPrice: newPrice)
+                                }
+                            ), format: .currency(code: "USD"))
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        } else {
+                            Text("\(item.price, format: .currency(code: "USD"))")
+                        }
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .navigationTitle("Orders")
     }
 }
+
 
 struct AccountView: View {
     var body: some View {
         Text("Account Screen")
-            .foregroundColor(.primary) // Adapt to the current theme
+            .foregroundColor(.primary)
     }
 }
 
