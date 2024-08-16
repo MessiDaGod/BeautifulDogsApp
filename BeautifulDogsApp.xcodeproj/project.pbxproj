@@ -14,6 +14,7 @@
 		0B3958972C6BE62C00455E05 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958962C6BE62C00455E05 /* Persistence.swift */; };
 		0B39589A2C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958982C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld */; };
 		0B3958A62C6BEA8C00455E05 /* Media in Resources */ = {isa = PBXBuildFile; fileRef = 0B3958A52C6BEA8C00455E05 /* Media */; };
+		0B3958BC2C70109D00455E05 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3958BB2C70109D00455E05 /* SupabaseManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		0B3958962C6BE62C00455E05 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		0B3958992C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BeautifulDogsApp.xcdatamodel; sourceTree = "<group>"; };
 		0B3958A52C6BEA8C00455E05 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Media; sourceTree = "<group>"; };
+		0B3958BB2C70109D00455E05 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 				0B3958962C6BE62C00455E05 /* Persistence.swift */,
 				0B3958982C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld */,
 				0B3958932C6BE62C00455E05 /* Preview Content */,
+				0B3958BB2C70109D00455E05 /* SupabaseManager.swift */,
 			);
 			path = BeautifulDogsApp;
 			sourceTree = "<group>";
@@ -147,6 +150,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B3958BC2C70109D00455E05 /* SupabaseManager.swift in Sources */,
 				0B39589A2C6BE62C00455E05 /* BeautifulDogsApp.xcdatamodeld in Sources */,
 				0B3958972C6BE62C00455E05 /* Persistence.swift in Sources */,
 				0B3958902C6BE62B00455E05 /* ContentView.swift in Sources */,
